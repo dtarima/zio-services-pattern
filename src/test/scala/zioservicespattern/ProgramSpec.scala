@@ -1,6 +1,5 @@
 package zioservicespattern
 
-import zio.ZIO
 import zio.test.Assertion._
 import zio.test._
 import zio.test.environment.{TestConsole, TestEnvironment}
@@ -25,12 +24,10 @@ object ProgramSpec extends DefaultRunnableSpec {
       ServiceLayerUtils.provide(services.Live.layer(false),
         testM("configurable production environment") {
           for {
-            errorMsg <- Program.execute
-              .flatMap(result => throw new Exception(s"Expected error, but got '$result'"))
-              .catchAll { case err: Printer.Error => ZIO.succeed(err.msg) }
+            result <- Program.execute.either
             output <- TestConsole.output
           } yield {
-            assert(errorMsg)(equalTo(PrinterFail.errorMsg)) &&
+            assert(result.left.exists(_ == Printer.Error(PrinterFail.errorMsg)))(equalTo(true)) &&
               assert(output)(equalTo(Vector(PrinterFail.consoleOutput + f"%n")))
           }
         }),
