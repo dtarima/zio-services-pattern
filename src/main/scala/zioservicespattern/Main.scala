@@ -1,12 +1,16 @@
 package zioservicespattern
 
-import zio.{Runtime, ULayer, ZIO}
+import zio.{Runtime, ZIO}
+import zioservicespattern.base.{Base, BaseLive}
+import zioservicespattern.middle.MiddleLive
+import zioservicespattern.program.ProgramLive
 
 object Main {
-  val layer: ULayer[services.Env] = base.Live.layer >>> services.Live.layer(true)
+  val layer = (MiddleLive.layer ++ BaseLive.layer) >>> ProgramLive.layer
 
   def main(args: Array[String]): Unit = {
-    val program: ZIO[zio.ZEnv, services.Error, String] = Program.execute.provideLayer(layer)
-    println(Runtime.default.unsafeRun(program.catchAll(err => ZIO.succeed(s"$err"))))
+    val prog: ZIO[Base, middle.Error, Long] =
+      program.service.provideLayer(layer) >>= (_.execute(10))
+    Runtime.default.unsafeRun(prog)
   }
 }

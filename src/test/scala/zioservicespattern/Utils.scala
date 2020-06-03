@@ -6,14 +6,16 @@ import zio.duration._
 import zio.test.TestAspect.timeout
 import zio.test.environment.TestEnvironment
 import zio.test.{Spec, TestFailure, TestSuccess, ZSpec}
+import zioservicespattern.base.Base
+import zioservicespattern.program.Program
 
-object ServiceLayerUtils {
+object Utils {
 
   def provide[R, E](
-    layer: ZLayer[base.Env, E, services.Env],
-    spec: Spec[R, TestFailure[services.Error], TestSuccess])(
-    implicit ev: TestEnvironment with services.Env <:< R,
-    tag: Tag[services.Env]): ZSpec[TestEnvironment, Any] =
+    layer: ZLayer[Base, E, Program],
+    spec: Spec[R, TestFailure[middle.Error], TestSuccess])(
+    implicit ev: TestEnvironment with Program <:< R,
+    tag: Tag[middle.Middle]): ZSpec[TestEnvironment, Any] =
     spec
       .provideCustomLayer(layer)
       .mapError {
