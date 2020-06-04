@@ -1,35 +1,44 @@
 package zioservicespattern
 
-import zio.{IO, Runtime, URLayer, ZIO}
+import zio.{Runtime, URLayer, ZIO}
 import zioservicespattern.base.{Base, BaseLive}
-import zioservicespattern.middle.MiddleLive
+import zioservicespattern.core.{Core, CoreLive}
 import zioservicespattern.program.{Program, ProgramLive}
 
 object BenchmarkMain {
 
-  val layer: URLayer[Base, Program] =
-    (MiddleLive.layer ++ BaseLive.layer) >>> ProgramLive.layer
+  val layer: URLayer[Base, Program with Core] =
+    BaseLive.layer >>> CoreLive.layer >+> ProgramLive.layer
 
-  val count = 100_000
+  val methodCallCount = 100_000
 
   def main(args: Array[String]): Unit = {
-    println(f"env: ${test(_ executeInEnv _) / count}%6d ns")
-    println(f"svc: ${test(_ execute _) / count}%6d ns")
+    println("  [ one call time in nanos ]")
+    println(" direct | provide | dependency")
+    (1 to 10).foreach { _ =>
+      println(f"${exec(_ executeDirect _) / methodCallCount}%6d" +
+        f"  | ${exec(_ executeProvide _) / methodCallCount}%6d" +
+        f"  | ${exec(_ executeDependency _) / methodCallCount}%6d")
+    }
   }
 
-  private def test(computation: (Program.Service, Long) => IO[program.Error, Long]) = {
-    val prog: ZIO[Base, program.Error, Long] =
-      program.get.provideLayer(layer) >>= { service =>
-        ZIO.foldLeft(1 to count)(0L) { case (acc, i) =>
-          computation(service, i) map (_ + acc)
-        }
+  private def exec(computation: (Program.Service, Int) => ZIO[Core, program.Error, Long]): Long = {
+    val executeInEnvResult = runTest((for {
+      service <- program.get
+      result <- ZIO.foldLeft(1 to methodCallCount)(0L) { case (acc, i) =>
+        computation(service, i) map (_ + acc)
       }
+    } yield result).provideSomeLayer(layer))
+    executeInEnvResult
+  }
 
-    (1 to 20).map { _ =>
+  def runTest(prog: ZIO[Base, program.Error, Long]): Long = {
+    val runCount = 10
+    (1 to runCount * 2).map { _ =>
       val t = System.nanoTime()
       Runtime.default.unsafeRun(prog)
       System.nanoTime() - t
-    }.drop(10).sum / 10
+    }.drop(runCount).sum / runCount
   }
 }
 

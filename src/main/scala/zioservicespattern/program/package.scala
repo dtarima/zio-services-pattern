@@ -1,6 +1,7 @@
 package zioservicespattern
 
 import zio.{Has, IO, URIO, ZIO}
+import zioservicespattern.core.Core
 import zioservicespattern.program.Program.Service
 
 package object program {
@@ -11,9 +12,11 @@ package object program {
   object Program {
 
     trait Service {
-      def execute(value: Long): IO[Error, Long]
+      def executeDirect(value: Long): IO[Error, Long]
 
-      def executeInEnv(value: Long): IO[Error, Long]
+      def executeProvide(value: Long): IO[Error, Long]
+
+      def executeDependency(value: Long): ZIO[Core, Error, Long]
     }
 
   }

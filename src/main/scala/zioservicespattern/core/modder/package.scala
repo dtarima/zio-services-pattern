@@ -1,12 +1,12 @@
-package zioservicespattern.middle
+package zioservicespattern.core
 
 import zio.{Has, IO, ZIO}
-import zioservicespattern.middle
+import zioservicespattern.core
 
 package object modder {
   type Modder = Has[Modder.Service]
 
-  final case class Error(msg: String) extends middle.Error
+  final case class Error(msg: String) extends core.Error
 
   object Modder {
 

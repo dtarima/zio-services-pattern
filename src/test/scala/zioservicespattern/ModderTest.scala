@@ -1,7 +1,7 @@
 package zioservicespattern
 
 import zio._
-import zioservicespattern.middle.modder.{Error, Modder}
+import zioservicespattern.core.modder.{Error, Modder}
 
 object ModderTest {
   val layer: ULayer[Modder] = ZLayer.succeed(new Service())

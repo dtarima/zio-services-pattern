@@ -5,25 +5,25 @@ import zio.test.Assertion._
 import zio.test._
 import zio.test.environment.TestEnvironment
 import zioservicespattern.base.Base
-import zioservicespattern.middle.{Middle, MiddleLive}
+import zioservicespattern.core.{Core, CoreLive}
 import zioservicespattern.program.ProgramLive
 
 
 object ProgramSpec extends DefaultRunnableSpec {
 
-  val layerMiddleLive: URLayer[Base, Middle] = MiddleLive.layer
+  val layerMiddleLive: URLayer[Base, Core] = CoreLive.layer
 
-  val layerMiddleTest: URLayer[Base, Middle] = MiddleLive.layer ++ ModderTest.layer
+  val layerMiddleTest: URLayer[Base, Core] = CoreLive.layer ++ ModderTest.layer
 
   def spec: ZSpec[TestEnvironment, Any] =
     suite("Program")(
       TestUtils.provide(layerMiddleLive >>> ProgramLive.layer,
         testM("a live service works") {
-          (program.get >>= (_.execute(10))) map (r => assert(r)(equalTo(3L)))
+          (program.get >>= (_.executeDirect(10))) map (r => assert(r)(equalTo(3L)))
         }),
       TestUtils.provide(layerMiddleTest >>> ProgramLive.layer,
         testM("a live service can be replaced by a test instance") {
-          (program.get >>= (_.execute(10))) map (r => assert(r)(equalTo(4L)))
+          (program.get >>= (_.executeDirect(10))) map (r => assert(r)(equalTo(4L)))
         })
     )
 }

@@ -1,4 +1,4 @@
-package zioservicespattern.middle.modder
+package zioservicespattern.core.modder
 
 import zio.{IO, ULayer, ZIO, ZLayer}
 

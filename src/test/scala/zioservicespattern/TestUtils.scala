@@ -15,7 +15,7 @@ object TestUtils {
     layer: ZLayer[Base, E, Program],
     spec: Spec[R, TestFailure[program.Error], TestSuccess])(
     implicit ev: TestEnvironment with Program <:< R,
-    tag: Tag[middle.Middle]): ZSpec[TestEnvironment, Any] =
+    tag: Tag[core.Core]): ZSpec[TestEnvironment, Any] =
     spec
       .provideCustomLayer(layer)
       .mapError {
