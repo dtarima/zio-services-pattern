@@ -1,13 +1,12 @@
 package zioservicespattern
 
 import zioservicespattern.middle.modder.Modder
-import zioservicespattern.middle.printer.Printer
 
 package object middle {
-  type Middle = Printer with Modder
+  type Middle = Modder
 
-  trait Error
-
-  case class UnexpectedError(e: Throwable) extends Error
+  trait Error {
+    val msg: String
+  }
 
 }

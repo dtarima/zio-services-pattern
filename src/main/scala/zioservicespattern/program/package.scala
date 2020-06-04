@@ -1,13 +1,22 @@
 package zioservicespattern
 
 import zio.{Has, IO, URIO, ZIO}
+import zioservicespattern.program.Program.Service
 
 package object program {
-  type Program = Has[Service]
+  type Program = Has[Program.Service]
 
-  trait Service {
-    def execute(value: Long): IO[middle.Error, Long]
+  final case class Error(msg: String)
+
+  object Program {
+
+    trait Service {
+      def execute(value: Long): IO[Error, Long]
+
+      def executeInEnv(value: Long): IO[Error, Long]
+    }
+
   }
 
-  def service: URIO[Program, Service] = ZIO.access[Program](_.get)
+  def get: URIO[Program, Service] = ZIO.access[Program](_.get)
 }

@@ -1,6 +1,6 @@
 package zioservicespattern.middle
 
-import zio.{Has, IO, URIO, ZIO}
+import zio.{Has, IO, ZIO}
 import zioservicespattern.middle
 
 package object modder {
@@ -16,5 +16,6 @@ package object modder {
 
   }
 
-  def service: URIO[Modder, Modder.Service] = ZIO.access[Modder](_.get)
+  def mod(value: Long, det: Int): ZIO[Modder, Error, Long] =
+    ZIO.accessM(_.get.mod(value, det))
 }

@@ -1,22 +1,22 @@
 package zioservicespattern.program
 
-import zio.console.Console
-import zio.{IO, URLayer, ZLayer}
-import zioservicespattern.middle
-import zioservicespattern.middle.Middle
+import zio._
 import zioservicespattern.middle.modder.Modder
+import zioservicespattern.middle.{Middle, modder}
 
 object ProgramLive {
-  val layer: URLayer[Middle with Console, Program] =
-    ZLayer.fromServices[Modder.Service, Console.Service, Service] {
-      case (modderService, consoleService) => new ServiceImpl(modderService, consoleService)
-    }
+  val layer: URLayer[Middle, Program] =
+    ZLayer.identity[Middle] map (deps => Has(new ServiceImpl(deps)))
 
-  class ServiceImpl(modder: Modder.Service, console: Console.Service) extends Service {
-    def execute(value: Long): IO[middle.Error, Long] = for {
-      result <- modder.mod(value, 7)
-      _ <- console.putStrLn(s"result: $result")
-    } yield result
+  class ServiceImpl(env: Middle) extends Program.Service {
+    private lazy val modderService = env.get[Modder.Service]
+
+    def execute(value: Long): IO[Error, Long] =
+      modderService.mod(value, 7).mapError(err => Error(err.msg))
+
+    def executeInEnv(value: Long): IO[Error, Long] =
+      modder.mod(value, 7).mapError(err => Error(err.msg)).provide(env)
+
   }
 
 }

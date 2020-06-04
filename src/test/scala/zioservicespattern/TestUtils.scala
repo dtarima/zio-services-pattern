@@ -9,11 +9,11 @@ import zio.test.{Spec, TestFailure, TestSuccess, ZSpec}
 import zioservicespattern.base.Base
 import zioservicespattern.program.Program
 
-object Utils {
+object TestUtils {
 
   def provide[R, E](
     layer: ZLayer[Base, E, Program],
-    spec: Spec[R, TestFailure[middle.Error], TestSuccess])(
+    spec: Spec[R, TestFailure[program.Error], TestSuccess])(
     implicit ev: TestEnvironment with Program <:< R,
     tag: Tag[middle.Middle]): ZSpec[TestEnvironment, Any] =
     spec
