@@ -10,35 +10,28 @@ object BenchmarkMain {
   val layer: URLayer[Base, Program with Core] =
     BaseLive.layer >>> CoreLive.layer >+> ProgramLive.layer
 
-  val methodCallCount = 100_000
+  val methodCallCount = 10_000
 
   def main(args: Array[String]): Unit = {
-    println("  [ one call time in nanos ]")
+    println(" [ average call time in nanos ]")
     println(" direct | provide | dependency")
     (1 to 10).foreach { _ =>
-      println(f"${exec(_ executeDirect _) / methodCallCount}%6d" +
-        f"  | ${exec(_ executeProvide _) / methodCallCount}%6d" +
-        f"  | ${exec(_ executeDependency _) / methodCallCount}%6d")
+      println(f"${makeCalls(_ executeDirect _) / methodCallCount}%6d" +
+        f"  | ${makeCalls(_ executeProvide _) / methodCallCount}%6d" +
+        f"  | ${makeCalls(_ executeDependency _) / methodCallCount}%6d")
     }
   }
 
-  private def exec(computation: (Program.Service, Int) => ZIO[Core, program.Error, Long]): Long = {
-    val executeInEnvResult = runTest((for {
-      service <- program.get
-      result <- ZIO.foldLeft(1 to methodCallCount)(0L) { case (acc, i) =>
-        computation(service, i) map (_ + acc)
-      }
-    } yield result).provideSomeLayer(layer))
-    executeInEnvResult
-  }
+  private def makeCalls(f: (Program.Service, Int) => ZIO[Core, program.Error, Int]): Long =
+    runTest((program.get >>= (svc => ZIO.foreach(1 to methodCallCount)(_ => f(svc, 10))))
+      .provideSomeLayer(layer))
 
-  def runTest(prog: ZIO[Base, program.Error, Long]): Long = {
+  def runTest(prog: ZIO[Base, program.Error, Any]): Long = {
     val runCount = 10
-    (1 to runCount * 2).map { _ =>
+    (1 to runCount).map { _ =>
       val t = System.nanoTime()
       Runtime.default.unsafeRun(prog)
       System.nanoTime() - t
-    }.drop(runCount).sum / runCount
+    }.sorted.apply(runCount / 2)
   }
 }
-

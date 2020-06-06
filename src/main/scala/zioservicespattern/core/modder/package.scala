@@ -11,11 +11,16 @@ package object modder {
   object Modder {
 
     trait Service extends Serializable {
-      def mod(value: Long, det: Int): IO[Error, Long]
+      def mod(value: Int, d: Int): IO[Error, Int]
     }
 
   }
 
-  def mod(value: Long, det: Int): ZIO[Modder, Error, Long] =
-    ZIO.accessM(_.get.mod(value, det))
+  trait ModderDep {
+    protected val env: Core
+    protected lazy val modderSvc: Modder.Service = env.get[Modder.Service]
+  }
+
+  def mod(value: Int, d: Int): ZIO[Modder, Error, Int] =
+    ZIO.accessM(_.get.mod(value, d))
 }

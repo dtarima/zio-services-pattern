@@ -11,19 +11,19 @@ import zioservicespattern.program.ProgramLive
 
 object ProgramSpec extends DefaultRunnableSpec {
 
-  val layerMiddleLive: URLayer[Base, Core] = CoreLive.layer
+  val layerCoreLive: URLayer[Base, Core] = CoreLive.layer
 
-  val layerMiddleTest: URLayer[Base, Core] = CoreLive.layer ++ ModderTest.layer
+  val layerCoreTest: URLayer[Base, Core] = CoreLive.layer ++ ModderTest.layer
 
   def spec: ZSpec[TestEnvironment, Any] =
     suite("Program")(
-      TestUtils.provide(layerMiddleLive >>> ProgramLive.layer,
+      TestUtils.provide(layerCoreLive >>> ProgramLive.layer,
         testM("a live service works") {
-          (program.get >>= (_.executeDirect(10))) map (r => assert(r)(equalTo(3L)))
+          (program.get >>= (_.executeDirect(10))) map (r => assert(r)(equalTo(3)))
         }),
-      TestUtils.provide(layerMiddleTest >>> ProgramLive.layer,
+      TestUtils.provide(layerCoreTest >>> ProgramLive.layer,
         testM("a live service can be replaced by a test instance") {
-          (program.get >>= (_.executeDirect(10))) map (r => assert(r)(equalTo(4L)))
+          (program.get >>= (_.executeDirect(10))) map (r => assert(r)(equalTo(4)))
         })
     )
 }

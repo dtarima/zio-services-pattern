@@ -1,24 +1,27 @@
 package zioservicespattern.program
 
 import zio._
-import zioservicespattern.core.modder.Modder
-import zioservicespattern.core.{Core, modder}
+import zioservicespattern.core.{Core, CoreDep, modder}
 
 object ProgramLive {
   val layer: URLayer[Core, Program] =
-    ZLayer.identity[Core] map (deps => Has(new ServiceImpl(deps)))
+    ZLayer.identity[Core] map (env => Has(new ServiceImpl(env)))
 
-  class ServiceImpl(env: Core) extends Program.Service {
-    private lazy val modderService = env.get[Modder.Service]
+  class ServiceImpl(protected val env: Core) extends Program.Service with CoreDep {
 
-    def executeDirect(value: Long): IO[Error, Long] =
-      modderService.mod(value, 7).mapError(err => Error(err.msg))
+    def executeDirect(value: Int): IO[Error, Int] =
+      repeatAndGetLast(value)(modderSvc.mod(value, 7))
 
-    def executeProvide(value: Long): IO[Error, Long] =
-      modder.mod(value, 7).mapError(err => Error(err.msg)).provide(env)
+    def executeProvide(value: Int): IO[Error, Int] =
+      repeatAndGetLast(value)(modder.mod(value, 7)).provide(env)
 
-    def executeDependency(value: Long): ZIO[Core, Error, Long] =
-      modder.mod(value, 7).mapError(err => Error(err.msg))
+    def executeDependency(value: Int): ZIO[Core, Error, Int] =
+      repeatAndGetLast(value)(modder.mod(value, 7))
+
+    private def repeatAndGetLast[R](value: Int)(f: ZIO[R, modder.Error, Int]) = {
+      ZIO.foldLeft(1 to value)(0)((acc, _) => f.map(_ + acc)).map(_ / value)
+        .mapError(err => Error(err.msg))
+    }
   }
 
 }

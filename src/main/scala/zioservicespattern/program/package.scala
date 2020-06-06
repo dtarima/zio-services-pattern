@@ -12,11 +12,11 @@ package object program {
   object Program {
 
     trait Service {
-      def executeDirect(value: Long): IO[Error, Long]
+      def executeDirect(value: Int): IO[Error, Int]
 
-      def executeProvide(value: Long): IO[Error, Long]
+      def executeProvide(value: Int): IO[Error, Int]
 
-      def executeDependency(value: Long): ZIO[Core, Error, Long]
+      def executeDependency(value: Int): ZIO[Core, Error, Int]
     }
 
   }

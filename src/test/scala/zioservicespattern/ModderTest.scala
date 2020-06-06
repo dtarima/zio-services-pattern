@@ -7,7 +7,7 @@ object ModderTest {
   val layer: ULayer[Modder] = ZLayer.succeed(new Service())
 
   class Service extends Modder.Service {
-    def mod(value: Long, det: Int): IO[Error, Long] = ZIO.succeed((value + 1) % det)
+    def mod(value: Int, d: Int): IO[Error, Int] = ZIO.succeed((value + 1) % d)
   }
 
 }

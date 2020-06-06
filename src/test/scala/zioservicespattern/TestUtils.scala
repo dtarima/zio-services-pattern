@@ -1,21 +1,19 @@
 package zioservicespattern
 
 import izumi.reflect.Tag
-import zio.ZLayer
 import zio.duration._
 import zio.test.TestAspect.timeout
 import zio.test.environment.TestEnvironment
 import zio.test.{Spec, TestFailure, TestSuccess, ZSpec}
-import zioservicespattern.base.Base
-import zioservicespattern.program.Program
+import zio.{Has, ZLayer}
 
 object TestUtils {
 
-  def provide[R, E](
-    layer: ZLayer[Base, E, Program],
-    spec: Spec[R, TestFailure[program.Error], TestSuccess])(
-    implicit ev: TestEnvironment with Program <:< R,
-    tag: Tag[core.Core]): ZSpec[TestEnvironment, Any] =
+  def provide[R, R1 <: Has[_], E](
+    layer: ZLayer[TestEnvironment, E, R1],
+    spec: Spec[R, TestFailure[E], TestSuccess])(
+    implicit ev: TestEnvironment with R1 <:< R,
+    tag: Tag[R1]): ZSpec[TestEnvironment, Any] =
     spec
       .provideCustomLayer(layer)
       .mapError {
