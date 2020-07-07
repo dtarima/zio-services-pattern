@@ -1,6 +1,6 @@
 package zioservicespattern
 
-import zioservicespattern.core.modder.{Modder, ModderDep}
+import zioservicespattern.core.modder.{Modder, ModderService}
 
 package object core {
   type Core = Modder
@@ -9,6 +9,6 @@ package object core {
     val msg: String
   }
 
-  trait CoreDep extends ModderDep
+  trait CoreServices extends ModderService
 
 }

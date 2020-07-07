@@ -16,9 +16,11 @@ package object modder {
 
   }
 
-  trait ModderDep {
+  trait ModderService {
     protected val env: Core
-    protected lazy val modderSvc: Modder.Service = env.get[Modder.Service]
+    protected lazy val modderService: Modder.Service = env.get[Modder.Service]
+
+    def mod(value: Int, d: Int): IO[Error, Int] = modderService.mod(value, d)
   }
 
   def mod(value: Int, d: Int): ZIO[Modder, Error, Int] =
